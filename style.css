@@ -15,6 +15,26 @@
     stroke: #fff;
 }
 
+.folder rect {
+    stroke: #fff;
+}
+
+.folder text {
+    font: 12px sans-serif;
+    fill: #fff;
+    pointer-events: none;
+}
+
+.file circle {
+    stroke: #fff;
+}
+
+.file text {
+    font: 10px sans-serif;
+    fill: #fff;
+    pointer-events: none;
+}
+
 .link {
     fill: none;
     stroke: #555;

@@ -15,7 +15,8 @@ d3.json("output.json").then(data => {
     // Convertir les données en hiérarchie
     const root = d3.hierarchy(data)
         .sum(d => d.size) // Utiliser la propriété "size" pour déterminer la taille des boîtes
-        .sort((a, b) => b.value - a.value);
+        .sort((a, b) => b.value - a.value)
+        .eachBefore((node, i) => { node.id = i; }); // Ajoute un ID unique
 
     // Appliquer le layout treemap
     treemapLayout(root);
@@ -29,51 +30,74 @@ d3.json("output.json").then(data => {
 
     // Fonction pour mettre à jour la visualisation
     function update(source) {
-        // Appliquer le layout treemap au nœud source
-        treemapLayout(source);
+        treemapLayout(source.copy());
 
-        const nodes = source.children ? source.children : [source];
-        const transition = svg.transition().duration(750);
+        // Séparer les dossiers et les fichiers
+        const folders = source.children.filter(d => d.children);
+        const files = source.children.filter(d => !d.children);
 
-        // Ajouter les nœuds
-        const node = svg.selectAll(".node")
-            .data(nodes, d => d.id);
+        // Ajouter le rectangle ".." si le parent existe
+        if (source.parent) {
+            folders.unshift({ data: { name: ".." }, parent: source.parent });
+        }
 
-        node.exit().remove();
+        // Dimensions des rectangles
+        const rectWidth = 120;
+        const rectHeight = 50;
+        const columns = Math.ceil(Math.sqrt(folders.length));
+        const gridWidth = columns * rectWidth;
 
-        const nodeEnter = node.enter().append("g")
-            .attr("class", "node")
-            .attr("transform", d => `translate(${source.x0},${source.y0})`);
+        // Positionner les rectangles
+        const folderSelection = svg.selectAll(".folder")
+            .data(folders, d => d.data.name);
 
-        nodeEnter.append("rect")
-            .attr("width", d => d.x1 - d.x0)
-            .attr("height", d => d.y1 - d.y0)
-            .attr("fill", d => colorScale(d.depth / root.height));
+        folderSelection.exit().remove();
 
-        nodeEnter.append("text")
-            .attr("dy", ".75em")
-            .attr("x", 5)
-            .attr("y", 20)
-            .text(d => d.data.name);
+        const folderEnter = folderSelection.enter().append("g")
+            .attr("class", "folder")
+            .on("click", (event, d) => {
+                if (d.data.name === "..") {
+                    update(d.parent);
+                } else if (d.children) {
+                    update(d);
+                }
+            });
 
-        const nodeUpdate = nodeEnter.merge(node);
+        folderEnter.append("rect")
+            .attr("width", rectWidth)
+            .attr("height", rectHeight)
+            .attr("x", (d, i) => (i % columns) * rectWidth)
+            .attr("y", (d, i) => Math.floor(i / columns) * rectHeight)
+            .attr("fill", "lightblue");
 
-        nodeUpdate.transition(transition)
-            .attr("transform", d => `translate(${d.x0},${d.y0})`);
+        folderEnter.append("text")
+            .attr("x", (d, i) => (i % columns) * rectWidth + rectWidth / 2)
+            .attr("y", (d, i) => Math.floor(i / columns) * rectHeight + rectHeight / 2)
+            .attr("text-anchor", "middle")
+            .attr("dominant-baseline", "middle")
+            .text(d => d.data.name)
+            .style("font-size", "12px");
 
-        nodeUpdate.select("rect")
-            .attr("width", d => d.x1 - d.x0)
-            .attr("height", d => d.y1 - d.y0);
+        // Ajouter les cercles pour les fichiers
+        const fileRadius = 20; // Rayon des cercles
+        const fileColumns = Math.ceil(Math.sqrt(files.length));
+        const fileGridWidth = fileColumns * (fileRadius * 2 + 10); // Espace entre les cercles
 
-        nodeUpdate.select("text")
-            .style("fill-opacity", 1);
+        const fileEnter = svg.selectAll(".file")
+            .data(files, d => d.data.name)
+            .enter().append("g")
+            .attr("class", "file")
+            .attr("transform", (d, i) => `translate(${(i % fileColumns) * (fileRadius * 2 + 10)},${Math.floor(i / fileColumns) * (fileRadius * 2 + 10) + (Math.ceil(folders.length / columns) * rectHeight)})`);
 
-        // Ajouter l'événement de clic aux nœuds existants et nouveaux
-        nodeUpdate.on("click", d => {
-            if (d.children) {
-                update(d);
-            }
-        });
+        fileEnter.append("circle")
+            .attr("r", fileRadius)
+            .attr("fill", "lightgreen");
+
+        fileEnter.append("text")
+            .attr("text-anchor", "middle")
+            .attr("dominant-baseline", "middle")
+            .text(d => d.data.name)
+            .style("font-size", "10px");
     }
 
     // Initialiser la visualisation avec le root
