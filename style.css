@@ -12,7 +12,7 @@
 }
 
 .node rect {
-    fill: steelblue;
+    stroke: #fff;
 }
 
 .link {
