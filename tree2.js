@@ -1,54 +1,111 @@
-let tree2_width = 960;
-let tree2_height = 600;
-
-const tree2_layout = d3.tree().size([tree2_height, tree2_width - 160]);
-
+// Load the data from a JSON file
 d3.json("output.json").then(data => {
-    
+
+    const width = 928;
+    const marginTop = 10;
+    const marginRight = 10;
+    const marginBottom = 10;
+    const marginLeft = 40;
+
     const root = d3.hierarchy(data);
+    const dx = 10;
+    const dy = (width - marginRight - marginLeft) / (1 + root.height);
 
-    tree2_layout(root);
+    const tree = d3.tree().nodeSize([dx, dy]);
+    const diagonal = d3.linkHorizontal().x(d => d.y).y(d => d.x);
 
-    const treeW = root.descendants().reduce((acc, d) => Math.max(acc, d.y), 0) + 160;
-    const treeH = root.descendants().reduce((acc, d) => Math.max(acc, d.x), 0);
+    const svg = d3.create("svg")
+        .attr("width", width)
+        .attr("height", dx)
+        .attr("viewBox", [-marginLeft, -marginTop, width, dx])
+        .attr("style", "max-width: 100%; height: auto; font: 10px sans-serif; user-select: none;");
 
-    tree2_width = treeW;
-    tree2_height= treeH;
+    const gLink = svg.append("g")
+        .attr("fill", "none")
+        .attr("stroke", "#555")
+        .attr("stroke-opacity", 0.4)
+        .attr("stroke-width", 1.5);
 
-    const svg = d3.select("#tree2")
-        .append("svg")
-        .attr("width", tree2_width)
-        .attr("height",tree2_height)
-        .append("g")
-        .attr("transform", "translate(40,0)");
+    const gNode = svg.append("g")
+        .attr("cursor", "pointer")
+        .attr("pointer-events", "all");
 
-    svg.selectAll(".link")
-        .data(root.descendants().slice(1))
-        .enter().append("path")
-        .attr("class", "link")
-        .attr("d", d => `
-            M${d.y},${d.x}
-            C${d.parent.y + 100},${d.x}
-             ${d.parent.y + 100},${d.parent.x}
-             ${d.parent.y},${d.parent.x}`);
+    function update(source) {
+        const duration = 250;
+        const nodes = root.descendants();
+        const links = root.links();
 
-    const node = svg.selectAll(".node")
-        .data(root.descendants())
-        .enter().append("g")
-        .attr("class", d => "node" + (d.children ? " node--internal" : " node--leaf"))
-        .attr("transform", d => `translate(${d.y},${d.x})`);
+        tree(root);
 
-    node.append("circle")
-        .attr("r", 10);
+        let left = root;
+        let right = root;
+        root.eachBefore(node => {
+            if (node.x < left.x) left = node;
+            if (node.x > right.x) right = node;
+        });
 
-    node.append("text")
-        .attr("dy", ".35em")
-        .attr("x", d => d.children ? -13 : 13)
-        .style("text-anchor", d => d.children ? "end" : "start")
-        .text(d => d.data.name);
+        const height = right.x - left.x + marginTop + marginBottom;
 
-}).catch(error => {
+        svg.transition()
+            .duration(duration)
+            .attr("height", height)
+            .attr("viewBox", [-marginLeft, left.x - marginTop, width, height]);
 
-    console.error("Erreur lors du chargement du fichier JSON:", error);
+        const node = gNode.selectAll("g")
+            .data(nodes, d => d.id);
 
+        const nodeEnter = node.enter().append("g")
+            .attr("transform", d => `translate(${source.y0},${source.x0})`)
+            .attr("fill-opacity", 0)
+            .attr("stroke-opacity", 0);
+
+        nodeEnter.append("circle")
+            .attr("r", 2.5)
+            .attr("fill", "#999")
+            .attr("stroke-width", 10);
+
+        nodeEnter.append("text")
+            .attr("dy", "0.31em")
+            .attr("x", 10) // Décalage augmenté pour éloigner le texte des branches
+            .attr("text-anchor", "start")
+            .text(d => d.data.name)
+            .attr("fill", "black");
+
+        node.merge(nodeEnter).transition()
+            .duration(duration)
+            .attr("transform", d => `translate(${d.y},${d.x})`)
+            .attr("fill-opacity", 1)
+            .attr("stroke-opacity", 1);
+
+        const link = gLink.selectAll("path")
+            .data(links, d => d.target.id);
+
+        link.enter().append("path")
+            .attr("d", d => {
+                const o = {x: source.x0, y: source.y0};
+                return diagonal({source: o, target: o});
+            })
+            .merge(link)
+            .transition()
+            .duration(duration)
+            .attr("d", diagonal);
+
+        root.eachBefore(d => {
+            d.x0 = d.x;
+            d.y0 = d.y;
+        });
+    }
+
+    root.x0 = dx / 2;
+    root.y0 = 0;
+
+    // Force the entire tree to expand
+    root.descendants().forEach(d => {
+        d.children = d._children || d.children;
+        d._children = null;
+    });
+
+    update(root);
+
+    document.getElementById("tree2").appendChild(svg.node());
 });
