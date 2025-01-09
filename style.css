@@ -1,9 +1,18 @@
+.node {
+    border: 1px solid #fff;
+    position: absolute;
+}
+
 .node circle {
     fill: #999;
 }
 
 .node text {
     font: 12px sans-serif;
+}
+
+.node rect {
+    fill: steelblue;
 }
 
 .link {

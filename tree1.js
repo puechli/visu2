@@ -1,57 +1,45 @@
-let tree1_width = 960;
-let tree1_height = 600;
+let width = 960;
+let height = 600;
 
-const tree1_layout = d3.tree().size([tree1_height, tree1_width - 160]);
+// Créer le layout treemap
+const treemapLayout = d3.treemap()
+    .size([width, height])
+    .padding(1);
 
 d3.json("output.json").then(data => {
-    
-    const root = d3.hierarchy(data);
+    // Convertir les données en hiérarchie
+    const root = d3.hierarchy(data)
+        .sum(d => d.size) // Utiliser la propriété "size" pour déterminer la taille des boîtes
+        .sort((a, b) => b.value - a.value);
 
-    tree1_layout(root);
+    // Appliquer le layout treemap
+    treemapLayout(root);
 
-    const treeW = root.descendants().reduce((acc, d) => Math.max(acc, d.y), 0) + 160;
-    const treeH = root.descendants().reduce((acc, d) => Math.max(acc, d.x), 0);
-
-    tree1_width = treeW;
-    tree1_height= treeH;
-
+    // Sélectionner le conteneur DIV et créer l'élément SVG
     const container = d3.select("#tree1");
-
-    container.selectAll("svg").remove();
-
+    container.selectAll("svg").remove(); // Supprimer les SVG existants
     const svg = container.append("svg")
-        .attr("width", tree1_width)
-        .attr("height",tree1_height)
-        .append("g")
-        .attr("transform", "translate(40,0)");
+        .attr("width", width)
+        .attr("height", height);
 
-    svg.selectAll(".link")
-        .data(root.descendants().slice(1))
-        .enter().append("path")
-        .attr("class", "link")
-        .attr("d", d => `
-            M${d.y},${d.x}
-            C${d.parent.y + 100},${d.x}
-             ${d.parent.y + 100},${d.parent.x}
-             ${d.parent.y},${d.parent.x}`);
-
+    // Ajouter les nœuds
     const node = svg.selectAll(".node")
-        .data(root.descendants())
+        .data(root.leaves())
         .enter().append("g")
-        .attr("class", d => "node" + (d.children ? " node--internal" : " node--leaf"))
-        .attr("transform", d => `translate(${d.y},${d.x})`);
+        .attr("class", "node")
+        .attr("transform", d => `translate(${d.x0},${d.y0})`);
 
-    node.append("circle")
-        .attr("r", 10);
+    node.append("rect")
+        .attr("width", d => d.x1 - d.x0)
+        .attr("height", d => d.y1 - d.y0)
+        .attr("fill", "steelblue");
 
     node.append("text")
-        .attr("dy", ".35em")
-        .attr("x", d => d.children ? -13 : 13)
-        .style("text-anchor", d => d.children ? "end" : "start")
+        .attr("dy", ".75em")
+        .attr("x", 5)
+        .attr("y", 20)
         .text(d => d.data.name);
 
 }).catch(error => {
-
     console.error("Erreur lors du chargement du fichier JSON:", error);
-
 });

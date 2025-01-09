@@ -9,6 +9,7 @@ def path_to_dict(path):
         d['children'] = [path_to_dict(os.path.join(path,x)) for x in os.listdir(path)]
     else:
         d['type'] = "file"
+        d['size'] = os.path.getsize(path)
     return d
 
 f = open("output.json", "w")
