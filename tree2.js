@@ -52,21 +52,25 @@ d3.json("output.json").then(data => {
             .attr("viewBox", [-marginLeft, left.x - marginTop, width, height]);
 
         const node = gNode.selectAll("g")
-            .data(nodes, d => d.id);
+            .data(nodes, d => d.id || (d.id = ++i));
 
         const nodeEnter = node.enter().append("g")
             .attr("transform", d => `translate(${source.y0},${source.x0})`)
             .attr("fill-opacity", 0)
-            .attr("stroke-opacity", 0);
+            .attr("stroke-opacity", 0)
+            .on("click", (event, d) => {
+                d.children = d.children ? null : d._children;
+                update(d);
+            });
 
         nodeEnter.append("circle")
             .attr("r", 2.5)
-            .attr("fill", "#999")
+            .attr("fill", d => d._children ? "#555" : "#999")
             .attr("stroke-width", 10);
 
         nodeEnter.append("text")
             .attr("dy", "0.31em")
-            .attr("x", 10) // Décalage augmenté pour éloigner le texte des branches
+            .attr("x", 10)
             .attr("text-anchor", "start")
             .text(d => d.data.name)
             .attr("fill", "black");
@@ -76,6 +80,13 @@ d3.json("output.json").then(data => {
             .attr("transform", d => `translate(${d.y},${d.x})`)
             .attr("fill-opacity", 1)
             .attr("stroke-opacity", 1);
+
+        node.exit().transition()
+            .duration(duration)
+            .attr("transform", d => `translate(${source.y},${source.x})`)
+            .attr("fill-opacity", 0)
+            .attr("stroke-opacity", 0)
+            .remove();
 
         const link = gLink.selectAll("path")
             .data(links, d => d.target.id);
@@ -90,19 +101,26 @@ d3.json("output.json").then(data => {
             .duration(duration)
             .attr("d", diagonal);
 
+        link.exit().transition()
+            .duration(duration)
+            .attr("d", d => {
+                const o = {x: source.x, y: source.y};
+                return diagonal({source: o, target: o});
+            })
+            .remove();
+
         root.eachBefore(d => {
             d.x0 = d.x;
             d.y0 = d.y;
         });
     }
 
+    let i = 0;
     root.x0 = dx / 2;
     root.y0 = 0;
-
-    // Force the entire tree to expand
     root.descendants().forEach(d => {
-        d.children = d._children || d.children;
-        d._children = null;
+        d._children = d.children;
+        d.children = null;
     });
 
     update(root);
