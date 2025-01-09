@@ -12,9 +12,9 @@
 ## Second arbre
 
 Cette visualisation interactive représente une structure de fichiers sous la forme d'un arbre hiérarchique, permettant d'explorer l'organisation des fichiers d'un répertoire donné.
-Les noeud de l'arbre représentent les répertoires et les feuilles représentent des fichiers. Les noeuds (répertoires) sont représentés par des petits cercles plus foncés que les feuilles (fichier).
+Les noeuds de l'arbre représentent les répertoires et les feuilles représentent des fichiers. Les noeuds (répertoires) sont représentés par des petits cercles plus foncés que les feuilles (fichiers).
 
 ### Fonctionnalités
 
 - Un clic sur un répertoire permet d'afficher ou de masquer son contenu.
-- En passant le curseur de la souris sur un fichier, la taille de ce fichier va s'afficher.
+- En passant le curseur de la souris sur un fichier, la taille de ce fichier va s'afficher. Rien ne s'affiche dans le cas où c'est un répertoire ou pour le fichier output.json car c'est lui qui contient les tailles des fichiers.
