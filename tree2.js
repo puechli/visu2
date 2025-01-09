@@ -73,7 +73,9 @@ d3.json("output.json").then(data => {
             .attr("x", 10)
             .attr("text-anchor", "start")
             .text(d => d.data.name)
-            .attr("fill", "black");
+            .attr("fill", "black")
+            .append("title")
+            .text(d => d.data.size ? `Taille: ${d.data.size} bytes` : "");
 
         node.merge(nodeEnter).transition()
             .duration(duration)
