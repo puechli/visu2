@@ -1,14 +1,13 @@
-// Load the data from a JSON file
 d3.json("output.json").then(data => {
 
     const width = 928;
-    const marginTop = 10;
+    const marginTop = 50;
     const marginRight = 10;
     const marginBottom = 10;
     const marginLeft = 40;
 
     const root = d3.hierarchy(data);
-    const dx = 10;
+    const dx =20;
     const dy = (width - marginRight - marginLeft) / (1 + root.height);
 
     const tree = d3.tree().nodeSize([dx, dy]);
@@ -24,7 +23,7 @@ d3.json("output.json").then(data => {
         .attr("fill", "none")
         .attr("stroke", "#555")
         .attr("stroke-opacity", 0.4)
-        .attr("stroke-width", 1.5);
+        .attr("stroke-width", 1);
 
     const gNode = svg.append("g")
         .attr("cursor", "pointer")
@@ -64,9 +63,9 @@ d3.json("output.json").then(data => {
             });
 
         nodeEnter.append("circle")
-            .attr("r", 2.5)
+            .attr("r", 4)
             .attr("fill", d => d._children ? "#555" : "#999")
-            .attr("stroke-width", 10);
+            .attr("stroke-width", 20);
 
         nodeEnter.append("text")
             .attr("dy", "0.31em")
@@ -74,6 +73,8 @@ d3.json("output.json").then(data => {
             .attr("text-anchor", "start")
             .text(d => d.data.name)
             .attr("fill", "black")
+            .attr("font-weight", "bold")
+            .attr("font-size", "15")
             .append("title")
             .text(d => d.data.size ? `Taille: ${d.data.size} bytes` : "");
 
