@@ -12,7 +12,9 @@ def path_to_dict(path):
         d['size'] = os.path.getsize(path)
     return d
 
+output:str = json.dumps(path_to_dict(sys.argv[1]), indent=4)
+
 f = open("output.json", "w")
-f.write(json.dumps(path_to_dict(sys.argv[1]),  indent=4))
+f.write(output)
 f.write(os.linesep)
 f.close()

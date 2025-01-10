@@ -8,8 +8,40 @@
         <script src="https://d3js.org/d3.v7.min.js"></script>
     </head>
     <body>
+        <h1>Présentation</h1>
+        <p>
+            AVANTURIER Aurélie, VANDER ELST Sidd et PUECH Lilian vous proposent deux façons différentes de visualiser et d'intéragir
+            de manière graphique avec un système de fichiers, autre qu'en utilisation l'explorateur de Windows qu'on utilise toutes
+            et tous au quotidien. Nous nous sommes tant habitués à l'affichage basique en quadrillage donné par l'explorateur de
+            Windows que nous ne prenons pas le temps d'imaginer autrement les données cachées dans nos disques de métal. Pourtant,
+            il existe une infinité de manières différentes, plus ou moins pertinentes ou fantaisistes, de visualiser des données,
+            comme peut en témoigner le célèbre site des publications de la <a href="https://svs.gsfc.nasa.gov/gallery/the-galleries/">NASA</a>.
+        </p>
+        <p>
+            Dans ce projet, nous avons choisi deux visualisations d'arboresence de fichiers qui sont diamétralement opposées et, selon nous,
+            très pertinentes. La première est une visualisation circulaire, où chaque dossier est un arc de cercle interactif et chaque fichier
+            est un arc de cercle dont la taille dépend du poids du fichier d'origine en octets. La seconde est une visualisation en arbre
+            penché à l'horizontal où chaque noeud est déployable en cliquant dessus et représente un dossier.
+        </p>
+        <p>
+            Le système de fichiers que vous souhaitez explorer peut être généré par le programme en Python fourni par le
+            <a href="https://github.com/puechli/visu2">repo git</a> de ce projet. Par défaut, ce que vous voyez en dessous,
+            représente l'arborescence des fichiers du <a href="https://github.com/puechli/visu2">repo git</a>.
+        </p>
+        <h1>Arborescence des fichiers en visualisation circulaire</h1>
         <div id="tree1"></div>
+        <h1>Arborescence des fichiers en visualisation d'arbres</h1>
         <div id="tree2"></div>
+        <p>
+            Cette visualisation interactive représente une structure de fichiers sous la forme d'un arbre hiérarchique,
+            permettant d'explorer l'organisation des fichiers d'un répertoire donné. Les noeuds de l'arbre représentent
+            les répertoires et les feuilles représentent des fichiers. Les noeuds (répertoires) sont représentés par des
+            petits cercles plus foncés que les feuilles (fichiers).            
+        </p>
+        <p>
+            Un clic sur un répertoire permet d'afficher ou de masquer son contenu.
+            En passant le curseur de la souris sur un fichier, la taille de ce fichier va s'afficher.
+        </p>
         <script src="tree1.js"></script>
         <script src="tree2.js"></script>
     </body>
